@@ -1,23 +1,32 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function App() {
   const [locations, setLocations] = useState([]);
   const [areaTypes, setAreaTypes] = useState([]);
+  
+  const today = new Date().toISOString().split('T')[0];
+  
   const [formData, setFormData] = useState({
     location: '',
     area_type: '',
+    availability: today,
     sqft: 1200,
     bhk: 2,
-    bath: 2
+    bath: 2,
+    balcony: 1
   });
   const [price, setPrice] = useState(null);
+  const [mathProof, setMathProof] = useState(null);
+  const [showProof, setShowProof] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // Fetch metadata from backend on mount
   useEffect(() => {
-    fetch('http://localhost:5000/metadata')
+    fetch(`${API_URL}/metadata`)
       .then(res => res.json())
       .then(data => {
         if (data.locations) {
@@ -48,14 +57,26 @@ function App() {
     setLoading(true);
     setError('');
     setPrice(null);
+    setMathProof(null);
+
+    // Map Calendar Date to ML string
+    const selectedDate = new Date(formData.availability);
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    const availStatus = selectedDate <= currentDate ? "Ready To Move" : "Under Construction";
+
+    const payload = {
+      ...formData,
+      availability: availStatus
+    };
 
     try {
-      const response = await fetch('http://localhost:5000/predict', {
+      const response = await fetch(`${API_URL}/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -64,6 +85,7 @@ function App() {
 
       const data = await response.json();
       setPrice(data.price_lakhs);
+      setMathProof(data.math_proof);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -79,80 +101,49 @@ function App() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Location</label>
-          <select 
-            className="input-field" 
-            name="location" 
-            value={formData.location}
-            onChange={handleInputChange}
-            required
-          >
-            {locations.length === 0 && <option value="">Start Flask backend to load data...</option>}
-            {locations.map(loc => (
-              <option key={loc} value={loc}>{loc}</option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <label>Location</label>
+            <select className="input-field" name="location" value={formData.location} onChange={handleInputChange} required>
+              {locations.length === 0 && <option value="">Loading...</option>}
+              {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+            </select>
+          </div>
+          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <label>Area Type</label>
+            <select className="input-field" name="area_type" value={formData.area_type} onChange={handleInputChange} required>
+              {areaTypes.length === 0 && <option value="">Loading...</option>}
+              {areaTypes.map(type => <option key={type} value={type}>{type}</option>)}
+            </select>
+          </div>
         </div>
 
-        <div className="form-group">
-          <label>Area Type</label>
-          <select 
-            className="input-field" 
-            name="area_type" 
-            value={formData.area_type}
-            onChange={handleInputChange}
-            required
-          >
-            {areaTypes.length === 0 && <option value="">Loading area types...</option>}
-            {areaTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+            <label>Availability Date</label>
+            <input type="date" className="input-field" name="availability" value={formData.availability} onChange={handleInputChange} required />
+          </div>
         </div>
 
         <div className="form-group">
           <label>Total Square Feet</label>
-          <input 
-            type="number" 
-            step="any"
-            className="input-field" 
-            name="sqft" 
-            value={formData.sqft}
-            onChange={handleInputChange}
-            min="100"
-            max="20000"
-            required
-          />
+          <input type="number" step="any" className="input-field" name="sqft" value={formData.sqft} onChange={handleInputChange} min="100" max="20000" required />
         </div>
 
         <div style={{ display: 'flex', gap: '1rem' }}>
           <div className="form-group" style={{ flex: 1 }}>
             <label>BHK</label>
-            <input 
-              type="number" 
-              className="input-field" 
-              name="bhk" 
-              value={formData.bhk}
-              onChange={handleInputChange}
-              min="1"
-              max="10"
-              required
-            />
+            <input type="number" className="input-field" name="bhk" value={formData.bhk} onChange={handleInputChange} min="1" max="10" required />
           </div>
 
           <div className="form-group" style={{ flex: 1 }}>
             <label>Bathrooms</label>
-            <input 
-              type="number" 
-              className="input-field" 
-              name="bath" 
-              value={formData.bath}
-              onChange={handleInputChange}
-              min="1"
-              max="10"
-              required
-            />
+            <input type="number" className="input-field" name="bath" value={formData.bath} onChange={handleInputChange} min="1" max="10" required />
+          </div>
+
+          <div className="form-group" style={{ flex: 1 }}>
+            <label>Balconies</label>
+            <input type="number" className="input-field" name="balcony" value={formData.balcony} onChange={handleInputChange} min="0" max="10" required />
           </div>
         </div>
 
@@ -167,6 +158,64 @@ function App() {
         <div className="result-card">
           <h3>Estimated Value</h3>
           <div className="price">₹ {price.toFixed(2)} Lakhs</div>
+          
+          {mathProof && (
+            <div className="proof-section">
+              <button 
+                className="proof-toggle-btn" 
+                onClick={() => setShowProof(!showProof)}
+                type="button"
+              >
+                {showProof ? 'Hide' : 'Show'} Newton-Raphson Mathematical Proof
+              </button>
+              
+              {showProof && (
+                <div className="proof-content">
+                  <p className="proof-subtitle">
+                    Proof of Work: Evaluated using exact Newton-Raphson Optimization. <br/>
+                    Hessian Matrix Shape: <strong>{mathProof.matrix_shape}</strong>
+                  </p>
+
+                  <div className="proof-formulas">
+                    <h4>Applied Methodology (Multivariate Matrix Calculus)</h4>
+                    <ul>
+                      <li><strong>Prediction:</strong> <br/><code style={{color: '#ec4899'}}>Y_pred = X · θ</code></li>
+                      <li><strong>Gradient (1st Derivative):</strong> <br/><code style={{color: '#10b981'}}>G = -2 Xᵀ(Y - Y_pred)</code></li>
+                      <li><strong>Hessian (2nd Derivative):</strong> <br/><code style={{color: '#818cf8'}}>H = 2 Xᵀ X</code></li>
+                      <li><strong>Newton-Raphson Update:</strong> <br/><code style={{color: '#f59e0b'}}>θ_new = θ_old - H⁻¹ · G</code></li>
+                    </ul>
+                  </div>
+                  
+                  <table className="proof-table">
+                    <thead>
+                      <tr>
+                        <th>Feature Evaluated</th>
+                        <th>Value</th>
+                        <th>Trained Weight (θ)</th>
+                        <th>Contribution</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mathProof.breakdown.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.feature}</td>
+                          <td>{item.value}</td>
+                          <td>{item.weight.toFixed(4)}</td>
+                          <td className="highlight">{(item.contribution).toFixed(4)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td colSpan="3" style={{textAlign: 'right'}}><strong>Final Price Sum:</strong></td>
+                        <td className="highlight-sum">{price.toFixed(4)} Lakhs</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

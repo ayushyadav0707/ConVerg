@@ -133,3 +133,171 @@
   margin-top: 1rem;
   font-weight: 600;
 }
+
+/* Evaluator Proof Section */
+.proof-section {
+  margin-top: 2rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1.5rem;
+}
+
+.proof-toggle-btn {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--primary-color);
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.proof-toggle-btn:hover {
+  background: rgba(99, 102, 241, 0.4);
+}
+
+.proof-content {
+  margin-top: 1.5rem;
+  animation: fadeIn 0.4s ease-out forwards;
+  text-align: left;
+}
+
+.proof-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.proof-subtitle strong {
+  color: #818cf8;
+}
+
+.proof-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.proof-table th, .proof-table td {
+  padding: 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.proof-table th {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.proof-table tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.proof-table .highlight {
+  color: #10b981;
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.proof-table tfoot {
+  background: rgba(99, 102, 241, 0.15);
+}
+
+.proof-table .highlight-sum {
+  color: #f472b6;
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+/* Custom Searchable Dropdown */
+.custom-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  background: #1e1b4b;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  z-index: 10;
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.custom-dropdown li {
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.95rem;
+}
+
+.custom-dropdown li:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+/* Scrollbar styling for dropdown */
+.custom-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-dropdown::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.5);
+  border-radius: 4px;
+}
+
+/* Proof Formulas Section */
+.proof-formulas {
+  background: rgba(0,0,0,0.3);
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--primary-color);
+}
+
+.proof-formulas h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.proof-formulas ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.proof-formulas li {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.proof-formulas code {
+  background: rgba(255,255,255,0.05);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-family: monospace;
+  font-weight: 700;
+  display: inline-block;
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+}

@@ -1,9 +1,44 @@
 .app-container {
   width: 100%;
-  max-width: 600px;
-  padding: 2.5rem;
-  margin: 2rem;
+  max-width: 1300px;
+  padding: 0 1rem;
+  margin: 1rem auto;
   animation: fadeIn 0.8s ease-out forwards;
+}
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (min-width: 1000px) {
+  .dashboard-layout {
+    flex-direction: row;
+  }
+}
+
+.left-panel {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: 16px;
+}
+
+.right-panel {
+  flex: 1;
+  width: 100%;
+  padding: 2.5rem;
+  border-radius: 16px;
+  animation: slideInRight 0.5s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes fadeIn {
@@ -28,6 +63,12 @@
 .header p {
   color: var(--text-secondary);
   font-size: 1.1rem;
+}
+
+.app-logo {
+  height: 140px;
+  margin-bottom: 1rem;
+  object-fit: contain;
 }
 
 .form-group {
@@ -97,8 +138,6 @@
 }
 
 .result-card {
-  margin-top: 2rem;
-  padding: 1.5rem;
   text-align: center;
   background: rgba(99, 102, 241, 0.1);
   border: 1px solid rgba(99, 102, 241, 0.2);

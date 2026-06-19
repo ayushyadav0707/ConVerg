@@ -24,6 +24,14 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Location search state
+  const [locationSearch, setLocationSearch] = useState('');
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+
+  const filteredLocations = locations.filter(loc => 
+    loc.toLowerCase().includes(locationSearch.toLowerCase())
+  );
+
   // Fetch metadata from backend on mount
   useEffect(() => {
     fetch(`${API_URL}/metadata`)
@@ -94,8 +102,11 @@ function App() {
   };
 
   return (
-    <div className="app-container glass-panel">
+    <div className="app-container">
+      <div className="dashboard-layout">
+        <div className="left-panel glass-panel">
       <div className="header">
+        <img src="/logo.png" alt="ConVerg Logo" className="app-logo" />
         <h1>Bengaluru Real Estate</h1>
         <p>AI-Powered House Price Predictor</p>
       </div>
@@ -104,10 +115,41 @@ function App() {
         <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label>Location</label>
-            <select className="input-field" name="location" value={formData.location} onChange={handleInputChange} required>
-              {locations.length === 0 && <option value="">Loading...</option>}
-              {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-            </select>
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="text" 
+                className="input-field" 
+                placeholder="Search Location..." 
+                value={showLocationDropdown ? locationSearch : formData.location}
+                onChange={(e) => {
+                  setLocationSearch(e.target.value);
+                  setShowLocationDropdown(true);
+                }}
+                onFocus={() => {
+                  setLocationSearch('');
+                  setShowLocationDropdown(true);
+                }}
+                onBlur={() => setTimeout(() => setShowLocationDropdown(false), 200)}
+                required
+              />
+              {showLocationDropdown && (
+                <ul className="custom-dropdown">
+                  {filteredLocations.length > 0 ? (
+                    filteredLocations.map(loc => (
+                      <li key={loc} onClick={() => {
+                        setFormData({ ...formData, location: loc });
+                        setLocationSearch('');
+                        setShowLocationDropdown(false);
+                      }}>
+                        {loc}
+                      </li>
+                    ))
+                  ) : (
+                    <li style={{ color: '#ef4444' }}>No location found</li>
+                  )}
+                </ul>
+              )}
+            </div>
           </div>
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label>Area Type</label>
@@ -153,14 +195,16 @@ function App() {
       </form>
 
       {error && <div className="error-msg">{error}</div>}
+      </div>
 
       {price !== null && (
-        <div className="result-card">
-          <h3>Estimated Value</h3>
-          <div className="price">₹ {price.toFixed(2)} Lakhs</div>
-          
-          {mathProof && (
-            <div className="proof-section">
+        <div className="right-panel glass-panel">
+          <div className="result-card">
+            <h3>Estimated Value</h3>
+            <div className="price">₹ {price.toFixed(2)} Lakhs</div>
+            
+            {mathProof && (
+              <div className="proof-section">
               <button 
                 className="proof-toggle-btn" 
                 onClick={() => setShowProof(!showProof)}
@@ -217,7 +261,9 @@ function App() {
             </div>
           )}
         </div>
+        </div>
       )}
+      </div>
     </div>
   )
 }

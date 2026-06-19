@@ -129,9 +129,12 @@ def newton_raphson_multivariate(X, y, lambda_reg=0.01):
 
 def train_model():
     global theta_global, columns_global
-    dataset_path = 'bengaluru_house_prices_cleaned.csv'
+    dataset_path = 'data/bengaluru_house_prices_cleaned.csv'
     if not os.path.exists(dataset_path):
-        dataset_path = '../bengaluru_house_prices_cleaned.csv'
+        dataset_path = 'backend/data/bengaluru_house_prices_cleaned.csv'
+        
+    if not os.path.exists(dataset_path):
+        dataset_path = '../backend/data/bengaluru_house_prices_cleaned.csv'
         
     if not os.path.exists(dataset_path):
         print("Dataset not found!")

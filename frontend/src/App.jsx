@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import LandingPage from './LandingPage'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
 function App() {
+  const [showDashboard, setShowDashboard] = useState(false);
   const [locations, setLocations] = useState([]);
   const [areaTypes, setAreaTypes] = useState([]);
-  
-  const today = new Date().toISOString().split('T')[0];
   
   const [formData, setFormData] = useState({
     location: '',
     area_type: '',
-    availability: today,
     sqft: 1200,
     bhk: 2,
     bath: 2,
     balcony: 1
   });
-  const [price, setPrice] = useState(null);
+  const [priceNR, setPriceNR] = useState(null);
+  const [priceGD, setPriceGD] = useState(null);
+  const [epochsNR, setEpochsNR] = useState(null);
+  const [epochsGD, setEpochsGD] = useState(null);
   const [mathProof, setMathProof] = useState(null);
   const [showProof, setShowProof] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,27 +34,56 @@ function App() {
     loc.toLowerCase().includes(locationSearch.toLowerCase())
   );
 
-  // Fetch metadata from backend on mount
+  // Fetch metadata from backend on mount with retry logic
   useEffect(() => {
-    fetch(`${API_URL}/metadata`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.locations) {
-          const sortedLocs = data.locations.sort();
-          setLocations(sortedLocs);
-          const sortedAreas = data.area_types ? data.area_types.sort() : [];
-          setAreaTypes(sortedAreas);
-          
-          setFormData(prev => ({ 
-            ...prev, 
-            location: sortedLocs.length > 0 ? sortedLocs[0] : '',
-            area_type: sortedAreas.length > 0 ? sortedAreas[0] : ''
-          }));
-        }
-      })
-      .catch(err => {
-        console.error("Failed to fetch metadata:", err);
-      });
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 15;
+    
+    const fetchMetadata = () => {
+      fetch(`${API_URL}/metadata`)
+        .then(res => {
+          if (!res.ok) throw new Error("Backend responded with an error");
+          return res.json();
+        })
+        .then(data => {
+          if (!isMounted) return;
+          if (data.locations && data.locations.length > 0) {
+            const sortedLocs = data.locations.sort();
+            setLocations(sortedLocs);
+            const sortedAreas = data.area_types ? data.area_types.sort() : [];
+            setAreaTypes(sortedAreas);
+            
+            setFormData(prev => ({ 
+              ...prev, 
+              location: sortedLocs.length > 0 ? sortedLocs[0] : '',
+              area_type: sortedAreas.length > 0 ? sortedAreas[0] : ''
+            }));
+            setError(''); // Clear errors
+          } else {
+             if (retryCount < maxRetries) {
+               retryCount++;
+               setTimeout(fetchMetadata, 2000);
+             }
+          }
+        })
+        .catch(err => {
+          if (!isMounted) return;
+          console.error("Failed to fetch metadata:", err);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setError(`Backend starting up... (${retryCount}/${maxRetries})`);
+            setTimeout(fetchMetadata, 2000);
+          } else {
+            setError("Failed to connect to backend. Please ensure the Flask server is running on port 5000.");
+            setAreaTypes([]);
+          }
+        });
+    };
+
+    fetchMetadata();
+    
+    return () => { isMounted = false; };
   }, []);
 
   const handleInputChange = (e) => {
@@ -64,18 +95,13 @@ function App() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setPrice(null);
+    setPriceNR(null);
+    setPriceGD(null);
     setMathProof(null);
-
-    // Map Calendar Date to ML string
-    const selectedDate = new Date(formData.availability);
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0);
-    const availStatus = selectedDate <= currentDate ? "Ready To Move" : "Under Construction";
 
     const payload = {
       ...formData,
-      availability: availStatus
+      availability: "Ready To Move"
     };
 
     try {
@@ -92,7 +118,10 @@ function App() {
       }
 
       const data = await response.json();
-      setPrice(data.price_lakhs);
+      setPriceNR(data.price_lakhs_nr);
+      setPriceGD(data.price_lakhs_gd);
+      setEpochsNR(data.epochs_nr);
+      setEpochsGD(data.epochs_gd);
       setMathProof(data.math_proof);
     } catch (err) {
       setError(err.message);
@@ -100,6 +129,10 @@ function App() {
       setLoading(false);
     }
   };
+
+  if (!showDashboard) {
+    return <LandingPage onStart={() => setShowDashboard(true)} />;
+  }
 
   return (
     <div className="app-container">
@@ -154,18 +187,12 @@ function App() {
           <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
             <label>Area Type</label>
             <select className="input-field" name="area_type" value={formData.area_type} onChange={handleInputChange} required>
-              {areaTypes.length === 0 && <option value="">Loading...</option>}
+              {areaTypes.length === 0 && <option value="">{error ? 'Waiting for Server...' : 'Loading...'}</option>}
               {areaTypes.map(type => <option key={type} value={type}>{type}</option>)}
             </select>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-          <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-            <label>Availability Date</label>
-            <input type="date" className="input-field" name="availability" value={formData.availability} onChange={handleInputChange} required />
-          </div>
-        </div>
 
         <div className="form-group">
           <label>Total Square Feet</label>
@@ -197,14 +224,35 @@ function App() {
       {error && <div className="error-msg">{error}</div>}
       </div>
 
-      {price !== null && (
-        <div className="right-panel glass-panel">
-          <div className="result-card">
-            <h3>Estimated Value</h3>
-            <div className="price">₹ {price.toFixed(2)} Lakhs</div>
+      <div className="right-panel glass-panel" style={{ display: 'flex', flexDirection: 'column', justifyContent: priceNR === null ? 'center' : 'flex-start' }}>
+      {priceNR === null ? (
+        <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem' }}>
+          <svg style={{ width: '64px', height: '64px', opacity: 0.5, marginBottom: '1rem' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <h2>Ready to Predict</h2>
+          <p>Fill out the property details on the left and click Predict Price to see the AI evaluation and mathematical proof.</p>
+        </div>
+      ) : (
+        <div className="result-card" style={{ margin: 0 }}>
+          <h3>Estimated Value Comparison</h3>
+          
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(129, 140, 248, 0.3)' }}>
+              <h4 style={{ color: '#818cf8', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Newton-Raphson</h4>
+              <div className="price" style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>₹ {priceNR.toFixed(2)} L</div>
+              <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Converged in {epochsNR} epoch(s)</div>
+            </div>
             
-            {mathProof && (
-              <div className="proof-section">
+            <div style={{ flex: 1, padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              <h4 style={{ color: '#10b981', marginBottom: '0.5rem', fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Gradient Descent</h4>
+              <div className="price" style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>₹ {priceGD.toFixed(2)} L</div>
+              <div style={{ fontSize: '0.8rem', color: '#aaa' }}>Converged in {epochsGD} epoch(s)</div>
+            </div>
+          </div>
+          
+          {mathProof && (
+            <div className="proof-section">
               <button 
                 className="proof-toggle-btn" 
                 onClick={() => setShowProof(!showProof)}
@@ -251,8 +299,8 @@ function App() {
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colSpan="3" style={{textAlign: 'right'}}><strong>Final Price Sum:</strong></td>
-                        <td className="highlight-sum">{price.toFixed(4)} Lakhs</td>
+                        <td colSpan="3" style={{textAlign: 'right'}}><strong>Final Price Sum (NR):</strong></td>
+                        <td className="highlight-sum">{priceNR.toFixed(4)} Lakhs</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -261,8 +309,11 @@ function App() {
             </div>
           )}
         </div>
-        </div>
       )}
+      
+
+      
+        </div>
       </div>
     </div>
   )

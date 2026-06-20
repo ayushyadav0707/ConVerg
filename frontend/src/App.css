@@ -1,36 +1,45 @@
 .app-container {
   width: 100%;
-  max-width: 1300px;
-  padding: 0 1rem;
-  margin: 1rem auto;
+  max-width: 1400px;
+  height: 100vh;
+  padding: 1rem;
+  margin: 0 auto;
   animation: fadeIn 0.8s ease-out forwards;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 2rem;
-  align-items: flex-start;
-}
-
-@media (min-width: 1000px) {
-  .dashboard-layout {
-    flex-direction: row;
-  }
+  height: 100%;
+  overflow: hidden;
 }
 
 .left-panel {
-  flex: 1;
-  width: 100%;
-  max-width: 600px;
+  flex: 0 0 450px !important;
+  width: 450px !important;
+  max-width: 450px !important;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.right-panel {
+  flex: 1 !important;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.left-panel {
   margin: 0 auto;
   padding: 2.5rem;
   border-radius: 16px;
 }
 
 .right-panel {
-  flex: 1;
-  width: 100%;
   padding: 2.5rem;
   border-radius: 16px;
   animation: slideInRight 0.5s ease-out forwards;
@@ -53,11 +62,12 @@
 
 .header h1 {
   font-weight: 800;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   background: linear-gradient(to right, #818cf8, #f472b6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
+  white-space: nowrap !important;
 }
 
 .header p {

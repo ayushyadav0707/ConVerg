@@ -37,3 +37,11 @@ body {
   border-radius: 24px;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
+
+html, body, #root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden !important;
+  margin: 0;
+  padding: 0;
+}

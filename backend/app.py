@@ -2,17 +2,26 @@ import numpy as np
 import pandas as pd
 import os
 import warnings
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
+import io
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression, SGDRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_squared_error
 
 warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the React frontend
 
-# Global variables for the trained model
-theta_global = None
+# Global variables for the trained models
+theta_nr_global = None
+theta_gd_global = None
 columns_global = None
+training_history = {'nr': [], 'gd': []}
 
 def convert_sqft_to_num(x):
     if not isinstance(x, str):
@@ -108,36 +117,13 @@ def prepare_features(df):
     X_df = df.drop('price', axis=1)
     return X_df, y
 
-def newton_raphson_multivariate(X, y, lambda_reg=0.01):
-    X_with_bias = np.c_[np.ones(X.shape[0]), X]
-    N, D = X_with_bias.shape
-    theta = np.zeros(D)
-    XT_X = np.dot(X_with_bias.T, X_with_bias)
-    H = 2 * XT_X + lambda_reg * np.eye(D)
-    
-    try:
-        H_inv = np.linalg.inv(H)
-    except np.linalg.LinAlgError:
-        # Increase regularization if heavily multicollinear
-        H = 2 * XT_X + (lambda_reg * 100) * np.eye(D)
-        H_inv = np.linalg.inv(H)
-        
-    y_pred = np.dot(X_with_bias, theta)
-    G = -2 * np.dot(X_with_bias.T, (y - y_pred))
-    theta = theta - np.dot(H_inv, G)
-    return theta
-
 def train_model():
-    global theta_global, columns_global
-    dataset_path = 'data/bengaluru_house_prices_cleaned.csv'
-    if not os.path.exists(dataset_path):
-        dataset_path = 'backend/data/bengaluru_house_prices_cleaned.csv'
+    global theta_nr_global, theta_gd_global, columns_global, training_history
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    dataset_path = os.path.join(base_dir, 'data', 'bengaluru_house_prices_cleaned.csv')
         
     if not os.path.exists(dataset_path):
-        dataset_path = '../backend/data/bengaluru_house_prices_cleaned.csv'
-        
-    if not os.path.exists(dataset_path):
-        print("Dataset not found!")
+        print(f"Dataset not found at {dataset_path}!")
         return False
         
     print(f"Loading dataset from {dataset_path}...")
@@ -148,8 +134,52 @@ def train_model():
     X_mat = X_df.values.astype(float)
     
     print(f"Training on matrix shape: {X_mat.shape} with {X_df.shape[1]} features.")
-    theta_global = newton_raphson_multivariate(X_mat, y)
-    print("Model trained successfully.")
+    
+    print("Training Scikit-Learn LinearRegression (Exact)...")
+    lr = LinearRegression()
+    lr.fit(X_mat, y)
+    theta_nr_global = np.insert(lr.coef_, 0, lr.intercept_)
+    nr_cost = mean_squared_error(y, lr.predict(X_mat))
+    hist_nr = [{'epoch': 1, 'cost': float(nr_cost)}]
+    
+    print("Training Scikit-Learn SGDRegressor...")
+    scaler_x = StandardScaler()
+    X_scaled = scaler_x.fit_transform(X_mat)
+    
+    scaler_y = StandardScaler()
+    y_scaled = scaler_y.fit_transform(y.reshape(-1, 1)).ravel()
+    
+    sgd = SGDRegressor(random_state=42)
+    hist_gd = []
+    
+    prev_mse = float('inf')
+    tol = 1e-4
+    max_epochs = 1000
+    
+    for epoch in range(1, max_epochs + 1):
+        sgd.partial_fit(X_scaled, y_scaled)
+        y_pred_scaled = sgd.predict(X_scaled)
+        y_pred = scaler_y.inverse_transform(y_pred_scaled.reshape(-1, 1)).ravel()
+        mse = mean_squared_error(y, y_pred)
+        
+        hist_gd.append({'epoch': epoch, 'cost': float(mse)})
+        
+        if abs(prev_mse - mse) < tol:
+            break
+            
+        prev_mse = mse
+        
+    w_unscaled = scaler_y.scale_[0] * sgd.coef_ / scaler_x.scale_
+    b_unscaled = scaler_y.scale_[0] * sgd.intercept_[0] + scaler_y.mean_[0] - np.sum(scaler_y.scale_[0] * scaler_x.mean_ * sgd.coef_ / scaler_x.scale_)
+    
+    theta_gd_global = np.zeros(X_mat.shape[1] + 1)
+    theta_gd_global[0] = b_unscaled
+    theta_gd_global[1:] = w_unscaled
+    
+    training_history['nr'] = hist_nr
+    training_history['gd'] = hist_gd
+    
+    print("Models trained successfully.")
     return True
 
 # Train the model when the server starts
@@ -157,8 +187,8 @@ train_model()
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if theta_global is None or columns_global is None:
-        return jsonify({'error': 'Model not trained.'}), 500
+    if theta_nr_global is None or theta_gd_global is None or columns_global is None:
+        return jsonify({'error': 'Models not trained.'}), 500
         
     data = request.json
     location = data.get('location', '')
@@ -205,21 +235,22 @@ def predict():
         x[np.where(columns_global == avail_col)[0][0]] = 1
         
     x_with_bias = np.insert(x, 0, 1)
-    price = np.dot(x_with_bias, theta_global)
+    price_nr = np.dot(x_with_bias, theta_nr_global)
+    price_gd = np.dot(x_with_bias, theta_gd_global)
     
-    # --- Mathematical Proof for Evaluators ---
+    # --- Mathematical Proof for Evaluators (Newton-Raphson) ---
     breakdown = []
     breakdown.append({
         "feature": "Base Parameter (Bias)", 
         "value": 1, 
-        "weight": float(theta_global[0]), 
-        "contribution": float(theta_global[0])
+        "weight": float(theta_nr_global[0]), 
+        "contribution": float(theta_nr_global[0])
     })
     
     def add_breakdown(feature_name, display_name, val):
         if feature_name in columns_global:
             idx = np.where(columns_global == feature_name)[0][0] + 1
-            w = float(theta_global[idx])
+            w = float(theta_nr_global[idx])
             breakdown.append({"feature": display_name, "value": val, "weight": w, "contribution": val * w})
             
     add_breakdown('total_sqft', "Total Sqft", sqft)
@@ -240,12 +271,47 @@ def predict():
         add_breakdown(avail_col, f"Availability ({availability})", 1)
     
     return jsonify({
-        'price_lakhs': float(price),
+        'price_lakhs_nr': float(price_nr),
+        'price_lakhs_gd': float(price_gd),
+        'epochs_nr': training_history['nr'][-1]['epoch'] if training_history['nr'] else 1,
+        'epochs_gd': training_history['gd'][-1]['epoch'] if training_history['gd'] else 0,
         'math_proof': {
-            'matrix_shape': f"{len(theta_global)}x{len(theta_global)}",
+            'matrix_shape': f"{len(theta_nr_global)}x{len(theta_nr_global)}",
             'breakdown': breakdown
         }
     })
+
+@app.route('/training-history', methods=['GET'])
+def get_training_history():
+    return jsonify(training_history)
+
+@app.route('/training-plot.png', methods=['GET'])
+def get_training_plot():
+    plt.style.use('dark_background')
+    plt.figure(figsize=(10, 4))
+    
+    epochs_gd = [d['epoch'] for d in training_history['gd']]
+    cost_gd = [d['cost'] for d in training_history['gd']]
+    marker_interval = max(1, len(epochs_gd) // 10)
+    plt.plot(epochs_gd, cost_gd, label='Gradient Descent (SGD)', color='#10b981', linewidth=2, marker='o', markevery=marker_interval)
+    
+    if training_history['nr']:
+        cost_nr = training_history['nr'][0]['cost']
+        plt.axhline(y=cost_nr, color='#818cf8', linestyle='--', linewidth=2, label='LinearRegression (Exact)')
+        
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE (Cost)')
+    plt.title('Optimization Convergence (Scikit-Learn)')
+    plt.legend()
+    plt.grid(True, linestyle=':', alpha=0.4)
+    
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', transparent=True)
+    buf.seek(0)
+    plt.close()
+    
+    return send_file(buf, mimetype='image/png')
 
 @app.route('/metadata', methods=['GET'])
 def get_metadata():

@@ -22,7 +22,7 @@ def main():
     frontend_process = subprocess.Popen(["npm", "run", "dev"], cwd=frontend_dir, shell=True)
     
     print("\n" + "="*60)
-    print("🚀 APPLICATION IS RUNNING!")
+    print(">>> APPLICATION IS RUNNING!")
     print("Backend API is running on: http://127.0.0.1:5000")
     print("Frontend UI is running on: http://localhost:5173")
     print("Open your browser and click the localhost link above!")

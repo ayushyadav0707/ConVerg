@@ -72,10 +72,35 @@ def predict():
         # Dot product prediction
         pred_price = np.dot(x_final, theta)
         
+        # Build calculation breakdown
+        breakdown = []
+        breakdown.append({
+            "feature": "Bias (Intercept)",
+            "value": 1.0,
+            "weight": float(theta[0]),
+            "contribution": float(theta[0] * 1.0)
+        })
+        
+        for i, val in enumerate(x_scaled):
+            if abs(val) > 1e-4:
+                feat_name = columns[i]
+                weight = float(theta[i+1])
+                contrib = float(val * weight)
+                breakdown.append({
+                    "feature": feat_name,
+                    "value": float(val),
+                    "weight": weight,
+                    "contribution": contrib
+                })
+                
         # Ensure no negative prices
         pred_price = max(0.0, float(pred_price))
         
-        return jsonify({'price_lakhs': pred_price})
+        return jsonify({
+            'price_lakhs': pred_price,
+            'breakdown': breakdown,
+            'formula': 'y = θ₀ + θ₁x₁ + θ₂x₂ + ... + θₙxₙ  (where x are scaled features)'
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 

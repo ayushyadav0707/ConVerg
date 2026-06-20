@@ -26,7 +26,7 @@ def main():
     # Because OLS is a quadratic surface, Newton-Raphson converges to the global minimum in EXACTLY 1 step.
     # We run 3 epochs just to demonstrate the gradient vanishing to zero.
     print("\n--- Training Exact Newton-Raphson Optimizer ---")
-    model = NewtonRaphsonRegressor(l2_penalty=0.01, epochs=3)
+    model = NewtonRaphsonRegressor(l2_penalty=1e-4, epochs=3)
     model.fit(X_train, y_train)
     
     # Predict and evaluate on unseen Test set
@@ -48,6 +48,10 @@ def main():
             'rmse': float(rmse),
             'mae': float(mae),
             'r2': float(r2)
+        },
+        'scaler': {
+            'mean': scaler.mean_.tolist(),
+            'scale': scaler.scale_.tolist()
         }
     }
     with open(weights_path, 'w') as f:

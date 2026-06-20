@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converg House | Price Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .predictor-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 2rem;
+        }
+        .predictor-card {
+            background: #fff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            border: none !important;
+            padding: 3rem !important;
+            border-radius: 16px !important;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+            transform: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <a href="/" style="text-decoration: none; color: inherit;">Converg House</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="#">How It Works</a>
+            <a href="#">About</a>
+        </div>
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+    </nav>
+
+    <!-- Predictor Area -->
+    <div class="predictor-page">
+        <div class="predictor-card">
+            <h3 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; margin-bottom: 2rem; color: var(--text-primary); text-align: center;">Calculate Estimate</h3>
+            <div class="form-group">
+                <label>Location</label>
+                <select id="location">
+                    {% for loc in locations %}
+                    <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Total Square Feet</label>
+                <input type="number" id="sqft" value="1200" min="300">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>BHK</label>
+                    <input type="number" id="bhk" value="2" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Bathrooms</label>
+                    <input type="number" id="bath" value="2" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Balconies</label>
+                    <input type="number" id="balcony" value="1" min="0">
+                </div>
+            </div>
+            <button id="predict-btn" class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.1rem; padding: 1rem;" onclick="predict()">Calculate Value</button>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

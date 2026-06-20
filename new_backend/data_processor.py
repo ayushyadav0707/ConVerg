@@ -34,14 +34,22 @@ def load_and_preprocess(filepath):
     df = df.dropna(subset=['total_sqft_num', 'price', 'location'])
     
     # Simple Outlier filtering to prevent extreme skew
+    # 1. Ensure at least 300 sqft per bedroom (standard heuristic)
+    df['sqft_per_bhk_temp'] = df['total_sqft_num'] / df['bhk']
+    df = df[df['sqft_per_bhk_temp'] >= 300]
+    
     df['price_per_sqft'] = df['price'] * 100000 / df['total_sqft_num']
-    # Keep up to 95th percentile to prevent heavy tail destruction of OLS
-    q_low = df['price_per_sqft'].quantile(0.01)
-    q_high = df['price_per_sqft'].quantile(0.95)
+    # Keep between 5th and 90th percentile to prevent heavy tail destruction of OLS
+    q_low = df['price_per_sqft'].quantile(0.05)
+    q_high = df['price_per_sqft'].quantile(0.90)
     df = df[(df['price_per_sqft'] >= q_low) & (df['price_per_sqft'] <= q_high)]
     
     # 2. Extract X and y
     y = df['price'].values  # Predict price directly for Newton-Raphson
+    
+    # FEATURE ENGINEERING
+    df['sqft_per_bhk'] = df['total_sqft_num'] / df['bhk']
+    df['bath_per_bhk'] = df['bath'] / df['bhk']
     
     # 3. Categorical encoding
     # Group rare locations
@@ -53,7 +61,7 @@ def load_and_preprocess(filepath):
     X_cat = pd.get_dummies(df['location_clean'], prefix='loc', drop_first=True)
     
     # Base numeric features
-    X_num = df[['total_sqft_num', 'bhk', 'bath', 'balcony']]
+    X_num = df[['total_sqft_num', 'bhk', 'bath', 'balcony', 'sqft_per_bhk', 'bath_per_bhk']]
     
     X_df = pd.concat([X_num, X_cat], axis=1).fillna(0)
     columns = X_df.columns.tolist()
@@ -65,11 +73,11 @@ def load_and_preprocess(filepath):
     
     # 4. Standard Scaling (Only scale numeric columns to prevent sparse categorical explosion)
     scaler = StandardScaler()
-    X_train_num = scaler.fit_transform(X_train[:, :4])
-    X_test_num = scaler.transform(X_test[:, :4])
+    X_train_num = scaler.fit_transform(X_train[:, :6])
+    X_test_num = scaler.transform(X_test[:, :6])
     
-    X_train_scaled = np.c_[X_train_num, X_train[:, 4:]]
-    X_test_scaled = np.c_[X_test_num, X_test[:, 4:]]
+    X_train_scaled = np.c_[X_train_num, X_train[:, 6:]]
+    X_test_scaled = np.c_[X_test_num, X_test[:, 6:]]
     
     # 5. Add Bias column (Intercept)
     X_train_final = np.c_[np.ones(X_train_scaled.shape[0]), X_train_scaled]

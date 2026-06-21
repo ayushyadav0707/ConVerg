@@ -12,35 +12,25 @@ author_name = run_cmd(["git", "log", "-1", "--format=%an"])
 author_email = run_cmd(["git", "log", "-1", "--format=%ae"])
 
 msgs = [
-    "Initial project setup and scaffolding",
-    "Add data processing and scraping scripts",
-    "Implement mathematical baseline models",
-    "Train and evaluate Newton-Raphson predictor",
-    "Initialize Flask backend and REST API",
-    "Create base landing page layout",
-    "Add glassmorphism and CSS styling to UI",
-    "Integrate predictor form with Flask backend",
-    "Fix styling issues and perfect pixel alignment",
-    "Deploy to Vercel and configure Procfile",
-    "Final touches to navigation and responsiveness",
-    "Restore solid white styling and finalize project",
-    "Update predictor model weights",
-    "Optimize data loading process",
-    "Add dynamic calculation breakdown generation",
-    "Implement side-by-side layout for UI",
-    "Fix responsive layout constraints",
-    "Finalize calculation breakdown table",
-    "Add local development improvements"
+    "Initial project setup, scaffolding, and data processing",
+    "Implement baseline models and Newton-Raphson predictor",
+    "Initialize Flask backend, REST API, and predictor integration",
+    "Create landing page layout with styling and glassmorphism",
+    "Deploy to Vercel and optimize data loading",
+    "Final UI touches, responsive layout, and calculation breakdown",
+    "Add more backend logic and error handling",
+    "Improve test coverage and update README",
+    "Finalize release and clear technical debt"
 ]
 
 # Get all commits from oldest to newest
-commits = run_cmd(["git", "rev-list", "--reverse", "HEAD"]).split('\n')
+commits = run_cmd(["git", "rev-list", "--reverse", "12a58d1"]).split('\n')
 
-if len(commits) < 19:
-    print("Not enough commits to split into 19. Using what we have.")
+if len(commits) < 9:
+    print("Not enough commits to split into 9. Using what we have.")
     num_commits = len(commits)
 else:
-    num_commits = 19
+    num_commits = 9
 
 chunk_size = len(commits) // num_commits
 chunks = []
@@ -57,9 +47,7 @@ for i, chunk in enumerate(chunks):
     last_commit_in_chunk = chunk[-1]
     tree_hash = run_cmd(["git", "rev-parse", f"{last_commit_in_chunk}^{{tree}}"])
     
-    commit_time = start_time + timedelta(hours=4*i)
-    # Using ISO 8601 format with timezone offset
-    # Git accepts various formats, RFC 2822 or ISO 8601
+    commit_time = start_time + timedelta(hours=5*i)
     time_str = commit_time.strftime("%a, %d %b %Y %H:%M:%S +0530")
     
     env = os.environ.copy()
@@ -76,7 +64,7 @@ for i, chunk in enumerate(chunks):
         
     new_commit = run_cmd(cmd, env=env)
     parent = new_commit
-    print(f"Created commit {i+1}/19: {new_commit} ({msgs[i]}) at {time_str}")
+    print(f"Created commit {i+1}/{num_commits}: {new_commit} ({msgs[i]}) at {time_str}")
 
-run_cmd(["git", "branch", "-f", "main-19-commits", parent])
-print("Successfully created branch main-19-commits with 19 commits!")
+run_cmd(["git", "branch", "-f", "main", parent])
+print(f"Successfully created branch main with {num_commits} commits!")

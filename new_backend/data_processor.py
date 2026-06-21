@@ -31,7 +31,7 @@ def load_and_preprocess(filepath):
     df['balcony'] = df['balcony'].fillna(1.0)
     
     # Drop NaNs in essential cols
-    df = df.dropna(subset=['total_sqft_num', 'price', 'location'])
+    df = df.dropna(subset=['total_sqft_num', 'price', 'location', 'area_type'])
     
     # Simple Outlier filtering to prevent extreme skew
     # 1. Ensure at least 300 sqft per bedroom (standard heuristic)
@@ -58,12 +58,16 @@ def load_and_preprocess(filepath):
     df['location_clean'] = df['location'].apply(lambda x: 'Other' if x in rare_locs else str(x).strip())
     
     # Get dummies for location
-    X_cat = pd.get_dummies(df['location_clean'], prefix='loc', drop_first=True)
+    X_loc = pd.get_dummies(df['location_clean'], prefix='loc', drop_first=True)
+    
+    # Clean area_type and get dummies
+    df['area_clean'] = df['area_type'].apply(lambda x: str(x).strip())
+    X_area = pd.get_dummies(df['area_clean'], prefix='area', drop_first=False)
     
     # Base numeric features
     X_num = df[['total_sqft_num', 'bhk', 'bath', 'balcony', 'sqft_per_bhk', 'bath_per_bhk']]
     
-    X_df = pd.concat([X_num, X_cat], axis=1).fillna(0)
+    X_df = pd.concat([X_num, X_area, X_loc], axis=1).fillna(0)
     columns = X_df.columns.tolist()
     
     X_raw = X_df.values.astype(np.float64)

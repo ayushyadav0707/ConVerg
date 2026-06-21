@@ -19,7 +19,7 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Force single page without scrollbar */
+    overflow: hidden;
 }
 
 h1, h2, h3, h4 {
@@ -58,9 +58,11 @@ nav {
     color: var(--text-primary);
 }
 
-.logo svg {
+.logo svg, .logo img.custom-logo {
     width: 32px;
     height: 32px;
+    object-fit: contain;
+    filter: brightness(0);
 }
 
 .nav-links {

@@ -11,17 +11,13 @@
     <!-- Navbar -->
     <nav>
         <div class="logo">
-            <!-- Simple Home Icon SVG -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-            Converg House
+            <img src="{{ url_for('static', filename='images/logo.png.png') }}" alt="Converg House Logo" class="custom-logo">
+            <a href="/" style="text-decoration: none; color: inherit;">Converg House</a>
         </div>
         <div class="nav-links">
             <a href="/" class="active">Home</a>
-            <a href="#">How It Works</a>
-            <a href="#">About</a>
+            <a href="/how-it-works">How It Works</a>
+            <a href="/about">About</a>
         </div>
         <a href="/predictor" class="btn btn-primary">Get Started &rarr;</a>
     </nav>
@@ -34,7 +30,7 @@
             
             <div class="hero-actions">
                 <a href="/predictor" class="btn btn-primary">Get Started &rarr;</a>
-                <a href="#" class="btn btn-secondary">See How It Works &rarr;</a>
+                <a href="/how-it-works" class="btn btn-secondary">See How It Works &rarr;</a>
             </div>
         </div>
 

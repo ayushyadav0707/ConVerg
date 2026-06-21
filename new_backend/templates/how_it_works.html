@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use - Converg Predictor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background-color: var(--bg-color);
+            height: auto;
+            overflow: auto;
+            display: block;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+        .guide-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .step-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .step-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .step-number {
+            background: #153326;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-right: 1.5rem;
+            margin-top: 0.25rem;
+        }
+        .step-content h3 {
+            color: #153326;
+            font-size: 1.3rem;
+            margin: 0 0 0.5rem 0;
+            font-weight: 600;
+        }
+        .step-content p {
+            color: #475569;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png.png') }}" alt="Converg House Logo" class="custom-logo">
+            <a href="/" style="text-decoration: none; color: inherit;">Converg House</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/how-it-works" class="active">How It Works</a>
+            <a href="/about">About</a>
+        </div>
+        <a href="/predictor" class="btn btn-primary">Get Started &rarr;</a>
+    </nav>
+
+    <div class="container">
+        <h1 style="text-align: center; color: #153326; font-size: 2.5rem; margin-bottom: 2rem;">How to Use the Predictor</h1>
+
+        <div class="guide-card">
+            
+            <div class="step-row">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Select Your Location</h3>
+                    <p>Start by clicking the "Location" field. A dropdown will appear with available areas in Bengaluru. You can type to search for a specific neighborhood, or use your Up/Down arrow keys to select one.</p>
+                </div>
+            </div>
+
+            <div class="step-row">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Enter Property Size</h3>
+                    <p>Input the total square footage of the property. Make sure the value is realistic (typically above 300 sq.ft) to get an accurate mathematical prediction.</p>
+                </div>
+            </div>
+
+            <div class="step-row">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Choose Area Type</h3>
+                    <p>Select the type of build-up area from the dropdown menu (e.g., Super built-up Area, Plot Area, Built-up Area, or Carpet Area). This significantly impacts the final valuation.</p>
+                </div>
+            </div>
+
+            <div class="step-row">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Define Layout Features</h3>
+                    <p>Enter the number of Bedrooms (BHK), Bathrooms, and Balconies. The model uses these ratios to adjust the final price.</p>
+                </div>
+            </div>
+
+            <div class="step-row">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h3>Calculate Value</h3>
+                    <p>Click the <strong>Calculate Value</strong> button. The system will process your inputs through the Newton-Raphson algorithm and instantly display the predicted house price in Lakhs!</p>
+                </div>
+            </div>
+
+        </div>
+        
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="/predictor" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">Try It Now &rarr;</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Converg House</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            overflow: auto;
+            height: auto;
+            background-color: #f4f3ef;
+        }
+        
+        .about-container {
+            max-width: 800px;
+            margin: 6rem auto 4rem auto;
+            padding: 3rem;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-header h1 {
+            color: #153326;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .about-header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .about-content {
+            line-height: 1.8;
+            color: #334155;
+            font-size: 1.1rem;
+        }
+
+        .about-content h2 {
+            color: #153326;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+        }
+
+        .about-content h3 {
+            color: #153326;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .about-content p {
+            margin-bottom: 1.5rem;
+        }
+        
+        .team-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png.png') }}" alt="Converg House Logo" class="custom-logo">
+            <a href="/" style="text-decoration: none; color: inherit;">Converg House</a>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/how-it-works">How It Works</a>
+            <a href="/about" class="active">About</a>
+        </div>
+        <a href="/predictor" class="btn btn-primary">Get Started &rarr;</a>
+    </nav>
+
+    <div class="about-container">
+        <div class="about-header">
+            <h1>About ConVerg &ndash; House Price Predictor</h1>
+            <p>Empowering Real Estate Decisions with Machine Learning</p>
+        </div>
+
+        <div class="about-content">
+            <p><strong>ConVerg</strong> is an intelligent and transparent house price prediction platform designed to estimate residential property prices in Bengaluru using advanced mathematical optimization and machine learning techniques.</p>
+            
+            <p>Unlike conventional house price prediction systems that function as black-box models, ConVerg focuses on transparency and explainability. The system uses a custom-built Multivariate Linear Regression model optimized through the <strong>Newton-Raphson Method</strong>, enabling faster convergence and efficient parameter estimation. By leveraging both first-order and second-order derivative information, the model learns the relationship between property characteristics and market prices with improved mathematical precision.</p>
+            
+            <p>The predictor analyzes important property features such as location, area type, square footage, number of bedrooms (BHK), bathrooms, and balconies to generate accurate price estimates. Through an intuitive web interface, users can enter property details and instantly receive an estimated market value.</p>
+
+            <h2>Key Features</h2>
+
+            <h3>1. Accurate Property Valuation</h3>
+            <p>ConVerg analyzes multiple property attributes simultaneously to provide reliable and data-driven house price predictions.</p>
+
+            <h3>2. Mathematical Transparency</h3>
+            <p>The predictor does not simply display a final price. It provides a detailed mathematical breakdown showing how individual property features contribute to the final estimated value, allowing users to understand the reasoning behind each prediction.</p>
+
+            <h3>3. Custom Newton-Raphson Optimization</h3>
+            <p>Instead of relying solely on standard machine learning libraries, the project implements the Newton-Raphson optimization technique to achieve faster convergence and efficient model training.</p>
+
+            <h3>4. Fast and Lightweight Performance</h3>
+            <p>Model parameters are pre-trained and stored efficiently, enabling rapid predictions without requiring expensive computations during runtime.</p>
+
+            <h3>5. User-Friendly Interface</h3>
+            <p>The web-based platform offers a simple and intuitive experience where users can easily input property details and receive results within seconds.</p>
+
+            <h3>6. Explainable AI Approach</h3>
+            <p>ConVerg promotes trust and interpretability by making machine learning predictions understandable to users, unlike many traditional black-box systems.</p>
+
+            <div class="team-section">
+                <h2>Our Vision</h2>
+                <p>The vision of ConVerg is to bridge the gap between complex machine learning models and user understanding by developing intelligent, transparent, and accessible property valuation solutions. By combining data-driven insights with mathematical explainability, ConVerg aims to make real estate decision-making more accurate, trustworthy, and efficient for everyone.</p>
+                <div style="margin-top: 2rem;">
+                    <a href="/predictor" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Try the Predictor</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,4 +1,5 @@
 # 🏡 House Price Predictor
+[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://python.org)
 
 A full-stack web application that predicts real estate prices for properties in Bengaluru based on features like location, square footage, BHK, etc.  
 

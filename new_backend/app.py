@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(base_dir, 'templates'), static_folder=os.path.join(base_dir, 'static'))
+# Enable CORS for cross-origin frontend requests
 CORS(app)
 
 # Load Model
@@ -37,6 +38,7 @@ def predictor():
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    """Handle prediction requests using the pre-loaded Newton-Raphson model."""
     try:
         data = request.json
         sqft = float(data.get('sqft', 1000))

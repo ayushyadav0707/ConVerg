@@ -1,14 +1,24 @@
 async function predict() {
+    const locValue = document.getElementById('location').value.trim();
+    const resultDiv = document.getElementById('result');
+    const calcContainer = document.getElementById('calculation-container');
+    const button = document.getElementById('predict-btn');
+
+    if (!locValue) {
+        resultDiv.style.color = '#ef4444';
+        resultDiv.innerText = 'Please enter a location';
+        if (calcContainer) calcContainer.style.display = 'none';
+        return;
+    }
+
     const data = {
-        location: document.getElementById('location').value,
+        location: locValue,
+        area_type: document.getElementById('area_type').value,
         sqft: document.getElementById('sqft').value,
         bhk: document.getElementById('bhk').value,
         bath: document.getElementById('bath').value,
         balcony: document.getElementById('balcony').value
     };
-    
-    const resultDiv = document.getElementById('result');
-    const button = document.getElementById('predict-btn');
     
     button.innerText = 'Calculating...';
     button.style.opacity = '0.8';
@@ -25,47 +35,99 @@ async function predict() {
         
         button.innerText = 'Calculate Value';
         button.style.opacity = '1';
-
-        const calcContainer = document.getElementById('calculation-container');
-        const calcFormula = document.getElementById('calc-formula');
-        const calcBody = document.getElementById('calc-body');
-        const calcTotalSum = document.getElementById('calc-total-sum');
-
-        if(res.error) {
-            resultDiv.style.color = '#ef4444';
-            resultDiv.innerText = 'Error';
-            calcContainer.style.display = 'none';
-        } else {
-            resultDiv.style.color = '#113023';
-            resultDiv.innerText = '₹ ' + res.price_lakhs.toFixed(2) + ' L';
-            
-            // Show calculation breakdown if available
-            if (res.breakdown) {
-                calcContainer.style.display = 'block';
-                calcFormula.innerText = res.formula || 'y = X * θ';
-                
-                calcBody.innerHTML = '';
-                res.breakdown.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.feature}</td>
-                        <td>${item.value.toFixed(4)}</td>
-                        <td>${item.weight.toFixed(4)}</td>
-                        <td>${item.contribution.toFixed(4)}</td>
-                    `;
-                    calcBody.appendChild(tr);
-                });
-                
-                calcTotalSum.innerText = res.price_lakhs.toFixed(4);
-            } else {
-                calcContainer.style.display = 'none';
-            }
+        
+        // Save prediction state
+        if (!res.error) {
+            localStorage.setItem('converg_last_prediction', JSON.stringify(res));
         }
+        
+        renderPrediction(res);
+        
     } catch(e) {
         button.innerText = 'Calculate Value';
         button.style.opacity = '1';
         resultDiv.style.color = '#ef4444';
         resultDiv.innerText = 'Server Error';
-        document.getElementById('calculation-container').style.display = 'none';
     }
 }
+
+function renderPrediction(res) {
+    const resultDiv = document.getElementById('result');
+    const calcContainer = document.getElementById('calculation-container');
+    const calcBody = document.getElementById('calc-body');
+    const calcTotalSum = document.getElementById('calc-total-sum');
+
+    if(res.error) {
+        resultDiv.style.color = '#ef4444';
+        resultDiv.innerText = 'Error';
+        if (calcContainer) calcContainer.style.display = 'none';
+    } else {
+        resultDiv.style.color = '#113023';
+        resultDiv.innerText = '₹ ' + res.price_lakhs.toFixed(2) + ' L';
+        
+        // Show calculation breakdown if available
+        if (res.breakdown && calcContainer && calcBody) {
+            calcContainer.style.display = 'block';
+            
+            calcBody.innerHTML = '';
+            res.breakdown.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.feature}</td>
+                    <td>${item.value.toFixed(4)}</td>
+                    <td>${item.weight.toFixed(4)}</td>
+                    <td>${item.contribution.toFixed(4)}</td>
+                `;
+                calcBody.appendChild(tr);
+            });
+            
+            if (calcTotalSum) {
+                calcTotalSum.innerText = res.price_lakhs.toFixed(4);
+            }
+        } else {
+            if (calcContainer) calcContainer.style.display = 'none';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // If we are on the home page, clear all saved data so starting fresh
+    if (window.location.pathname === '/' || window.location.pathname === '/index') {
+        const keysToClear = ['converg_location', 'converg_area_type', 'converg_sqft', 'converg_bhk', 'converg_bath', 'converg_balcony', 'converg_last_prediction'];
+        keysToClear.forEach(k => localStorage.removeItem(k));
+        return; // Don't run the rest of the script on the home page
+    }
+
+    const fields = ['location', 'area_type', 'sqft', 'bhk', 'bath', 'balcony'];
+    
+    // Restore saved state
+    fields.forEach(field => {
+        const savedVal = localStorage.getItem('converg_' + field);
+        const el = document.getElementById(field);
+        
+        if (el) {
+            if (savedVal !== null) {
+                el.value = savedVal;
+            }
+            
+            // Save state when user types or changes value
+            el.addEventListener('input', (e) => {
+                localStorage.setItem('converg_' + field, e.target.value);
+            });
+            el.addEventListener('change', (e) => {
+                localStorage.setItem('converg_' + field, e.target.value);
+            });
+        }
+    });
+    
+    // Restore last prediction
+    const savedPrediction = localStorage.getItem('converg_last_prediction');
+    const currentLocation = document.getElementById('location') ? document.getElementById('location').value.trim() : '';
+    if (savedPrediction && currentLocation) {
+        try {
+            renderPrediction(JSON.parse(savedPrediction));
+        } catch (e) {
+            console.error("Error restoring prediction", e);
+        }
+    }
+});

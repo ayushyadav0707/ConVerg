@@ -6,6 +6,11 @@
     <title>Converg House | Price Predictor</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
+        body {
+            height: auto;
+            overflow: auto;
+            display: block;
+        }
         .predictor-page {
             display: flex;
             flex-direction: column;
@@ -66,6 +71,7 @@
             font-size: 0.9rem;
             color: #334155;
             margin-bottom: 1rem;
+            white-space: pre-wrap;
             text-align: center;
         }
         .calc-table {
@@ -92,6 +98,34 @@
             font-weight: 700;
             color: #0f172a;
         }
+        .custom-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .dropdown-item {
+            padding: 0.8rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        .dropdown-item:hover, .dropdown-item.active {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
 <body>
@@ -99,16 +133,13 @@
     <!-- Navbar -->
     <nav>
         <div class="logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
+            <img src="{{ url_for('static', filename='images/logo.png.png') }}" alt="Converg House Logo" class="custom-logo">
             <a href="/" style="text-decoration: none; color: inherit;">Converg House</a>
         </div>
         <div class="nav-links">
             <a href="/">Home</a>
-            <a href="#">How It Works</a>
-            <a href="#">About</a>
+            <a href="/how-it-works">How It Works</a>
+            <a href="/about">About</a>
         </div>
         <a href="/" class="btn btn-secondary">Back to Home</a>
     </nav>
@@ -118,17 +149,28 @@
         <div class="predictor-container">
             <div class="predictor-card">
                 <h3 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; margin-bottom: 2rem; color: var(--text-primary); text-align: center;">Calculate Estimate</h3>
-                <div class="form-group">
+                <div class="form-group" style="position: relative;">
                     <label>Location</label>
-                    <select id="location">
+                    <input type="text" id="location" placeholder="Search Location..." value="Other" autocomplete="off">
+                    <div id="location-dropdown" class="custom-dropdown-list">
                         {% for loc in locations %}
-                        <option value="{{ loc }}">{{ loc }}</option>
+                        <div class="dropdown-item" onmousedown="selectLocation('{{ loc }}')">{{ loc }}</div>
                         {% endfor %}
-                    </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Total Square Feet</label>
-                    <input type="number" id="sqft" value="1200" min="300">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Total Square Feet</label>
+                        <input type="number" id="sqft" value="1200" min="300">
+                    </div>
+                    <div class="form-group">
+                        <label>Build Up Area Type</label>
+                        <select id="area_type">
+                            {% for area in area_types %}
+                            <option value="{{ area }}" {% if 'Super' in area %}selected{% endif %}>{{ area }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -149,8 +191,7 @@
             </div>
             
             <div id="calculation-container">
-                <h4 style="font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">Newton-Raphson Prediction Calculation</h4>
-                <div class="calc-formula" id="calc-formula"></div>
+                <h4 style="font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">Newton-Raphson Prediction Breakdown</h4>
                 <table class="calc-table">
                     <thead>
                         <tr>
@@ -173,6 +214,84 @@
         </div>
     </div>
 
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        const locInput = document.getElementById('location');
+        const locDropdown = document.getElementById('location-dropdown');
+        let currentFocus = -1;
+        
+        locInput.addEventListener('focus', () => {
+            locDropdown.style.display = 'block';
+            filterDropdown(); // Show all or filtered on focus
+        });
+        
+        locInput.addEventListener('blur', () => {
+            locDropdown.style.display = 'none';
+        });
+        
+        locInput.addEventListener('input', filterDropdown);
+
+        locInput.addEventListener('keydown', function(e) {
+            const items = Array.from(locDropdown.getElementsByClassName('dropdown-item')).filter(i => i.style.display !== 'none');
+            
+            if (e.key === "ArrowDown") {
+                currentFocus++;
+                addActive(items);
+                e.preventDefault();
+            } else if (e.key === "ArrowUp") {
+                currentFocus--;
+                addActive(items);
+                e.preventDefault();
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (currentFocus > -1 && items[currentFocus]) {
+                    selectLocation(items[currentFocus].innerText);
+                }
+            }
+        });
+
+        function addActive(items) {
+            if (!items || items.length === 0) return false;
+            removeActive(items);
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (items.length - 1);
+            items[currentFocus].classList.add("active");
+            items[currentFocus].scrollIntoView({ block: "nearest" });
+        }
+
+        function removeActive(items) {
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove("active");
+            }
+        }
+
+        function filterDropdown() {
+            const filter = locInput.value.toLowerCase();
+            const items = locDropdown.getElementsByClassName('dropdown-item');
+            currentFocus = -1; // Reset selection on filter change
+            for (let item of items) {
+                if (item.innerText.toLowerCase().includes(filter)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            }
+        }
+
+        function selectLocation(val) {
+            locInput.value = val;
+            locDropdown.style.display = 'none';
+            currentFocus = -1;
+            locInput.dispatchEvent(new Event('input'));
+        }
+    </script>
 </body>
 </html>

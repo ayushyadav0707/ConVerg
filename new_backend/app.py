@@ -6,6 +6,7 @@ from flask_cors import CORS
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__, template_folder=os.path.join(base_dir, 'templates'), static_folder=os.path.join(base_dir, 'static'))
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 # Enable CORS for cross-origin frontend requests
 CORS(app)
 
@@ -24,6 +25,10 @@ scaler_scale = np.array(model_data['scaler']['scale'])
 locations = [col.replace('loc_', '') for col in columns if col.startswith('loc_')]
 locations.sort()
 
+# Extract area types
+area_types = [col.replace('area_', '') for col in columns if col.startswith('area_')]
+area_types.sort()
+
 # Add standard 'Other' location fallback
 if 'Other' not in locations:
     locations.append('Other')
@@ -32,9 +37,17 @@ if 'Other' not in locations:
 def home():
     return render_template('index.html')
 
+@app.route('/how-it-works')
+def how_it_works():
+    return render_template('how_it_works.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 @app.route('/predictor')
 def predictor():
-    return render_template('predictor.html', locations=locations)
+    return render_template('predictor.html', locations=locations, area_types=area_types)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -46,6 +59,7 @@ def predict():
         bath = float(data.get('bath', 2))
         balcony = float(data.get('balcony', 1))
         loc = data.get('location', 'Other')
+        area = data.get('area_type', 'Super built-up  Area')
         
         # Build feature vector
         x = np.zeros(len(columns))
@@ -58,6 +72,9 @@ def predict():
             elif col == 'bath_per_bhk': x[i] = bath / float(bhk) if bhk > 0 else 0.0
             elif col.startswith('loc_'):
                 if col == f'loc_{loc}':
+                    x[i] = 1.0
+            elif col.startswith('area_'):
+                if col == f'area_{area}':
                     x[i] = 1.0
                     
         # Extract numeric features and scale them using training moments
@@ -98,10 +115,16 @@ def predict():
         # Ensure no negative prices
         pred_price = max(0.0, float(pred_price))
         
+        theoretical_formulas = (
+            "$\\textbf{1. Prediction Equation:} \\\\[1ex] y_{predicted} = wx + b$\n\n"
+            "$\\textbf{2. Error Function:} \\\\[1ex] Error = \\sum(y_{actual} - y_{predicted})^2$\n\n"
+            "$\\textbf{3. Newton-Raphson Optimization:} \\\\[1ex] w_{new} = w_{old} - \\frac{Gradient}{Hessian}$"
+        )
+        
         return jsonify({
             'price_lakhs': pred_price,
             'breakdown': breakdown,
-            'formula': 'y = θ₀ + θ₁x₁ + θ₂x₂ + ... + θₙxₙ  (where x are scaled features)'
+            'formula': theoretical_formulas
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 400

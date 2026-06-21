@@ -59,6 +59,8 @@ def predict():
         bath = float(data.get('bath', 2))
         balcony = float(data.get('balcony', 1))
         loc = data.get('location', 'Other')
+        if not loc or str(loc).strip() == '' or f'loc_{loc}' not in columns:
+            loc = 'Other'
         area = data.get('area_type', 'Super built-up  Area')
         
         # Build feature vector

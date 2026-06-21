@@ -11,6 +11,14 @@ async function predict() {
         return;
     }
 
+    const validLocations = Array.from(document.querySelectorAll('.dropdown-item')).map(item => item.innerText);
+    if (!validLocations.includes(locValue)) {
+        resultDiv.style.color = '#ef4444';
+        resultDiv.innerText = 'Location not found. Please select from the list.';
+        if (calcContainer) calcContainer.style.display = 'none';
+        return;
+    }
+
     const data = {
         location: locValue,
         area_type: document.getElementById('area_type').value,
@@ -35,11 +43,6 @@ async function predict() {
         
         button.innerText = 'Calculate Value';
         button.style.opacity = '1';
-        
-        // Save prediction state
-        if (!res.error) {
-            localStorage.setItem('converg_last_prediction', JSON.stringify(res));
-        }
         
         renderPrediction(res);
         
@@ -119,15 +122,4 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
-    
-    // Restore last prediction
-    const savedPrediction = localStorage.getItem('converg_last_prediction');
-    const currentLocation = document.getElementById('location') ? document.getElementById('location').value.trim() : '';
-    if (savedPrediction && currentLocation) {
-        try {
-            renderPrediction(JSON.parse(savedPrediction));
-        } catch (e) {
-            console.error("Error restoring prediction", e);
-        }
-    }
 });

@@ -151,7 +151,7 @@
                 <h3 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; margin-bottom: 2rem; color: var(--text-primary); text-align: center;">Calculate Estimate</h3>
                 <div class="form-group" style="position: relative;">
                     <label>Location</label>
-                    <input type="text" id="location" placeholder="Search Location..." value="Other" autocomplete="off">
+                    <input type="text" id="location" placeholder="Search Location..." value="" autocomplete="off">
                     <div id="location-dropdown" class="custom-dropdown-list">
                         {% for loc in locations %}
                         <div class="dropdown-item" onmousedown="selectLocation('{{ loc }}')">{{ loc }}</div>
@@ -161,7 +161,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Total Square Feet</label>
-                        <input type="number" id="sqft" value="1200" min="300">
+                        <input type="number" id="sqft" placeholder="e.g. 1200" min="300">
                     </div>
                     <div class="form-group">
                         <label>Build Up Area Type</label>
@@ -175,22 +175,22 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>BHK</label>
-                        <input type="number" id="bhk" value="2" min="1">
+                        <input type="number" id="bhk" placeholder="e.g. 2" min="1">
                     </div>
                     <div class="form-group">
                         <label>Bathrooms</label>
-                        <input type="number" id="bath" value="2" min="1">
+                        <input type="number" id="bath" placeholder="e.g. 2" min="1">
                     </div>
                     <div class="form-group">
                         <label>Balconies</label>
-                        <input type="number" id="balcony" value="1" min="0">
+                        <input type="number" id="balcony" placeholder="e.g. 1" min="0">
                     </div>
                 </div>
                 <button id="predict-btn" class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.1rem; padding: 1rem;" onclick="predict()">Calculate Value</button>
                 <div id="result" style="text-align: center; margin-top: 1.5rem; font-size: 1.5rem; font-weight: bold; font-family: 'Inter', sans-serif;"></div>
             </div>
             
-            <div id="calculation-container">
+            <div id="calculation-container" style="display: none;">
                 <h4 style="font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">Newton-Raphson Prediction Breakdown</h4>
                 <table class="calc-table">
                     <thead>

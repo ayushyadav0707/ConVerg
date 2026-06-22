@@ -96,7 +96,7 @@ function renderPrediction(res) {
 document.addEventListener('DOMContentLoaded', () => {
     // If we are on the home page, clear all saved data so starting fresh
     if (window.location.pathname === '/' || window.location.pathname === '/index') {
-        const keysToClear = ['converg_location', 'converg_area_type', 'converg_sqft', 'converg_bhk', 'converg_bath', 'converg_balcony', 'converg_last_prediction'];
+        const keysToClear = ['conVerg_location', 'conVerg_area_type', 'conVerg_sqft', 'conVerg_bhk', 'conVerg_bath', 'conVerg_balcony', 'conVerg_last_prediction'];
         keysToClear.forEach(k => localStorage.removeItem(k));
         return; // Don't run the rest of the script on the home page
     }
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Restore saved state
     fields.forEach(field => {
-        const savedVal = localStorage.getItem('converg_' + field);
+        const savedVal = localStorage.getItem('conVerg_' + field);
         const el = document.getElementById(field);
         
         if (el) {
@@ -115,10 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Save state when user types or changes value
             el.addEventListener('input', (e) => {
-                localStorage.setItem('converg_' + field, e.target.value);
+                localStorage.setItem('conVerg_' + field, e.target.value);
             });
             el.addEventListener('change', (e) => {
-                localStorage.setItem('converg_' + field, e.target.value);
+                localStorage.setItem('conVerg_' + field, e.target.value);
             });
         }
     });

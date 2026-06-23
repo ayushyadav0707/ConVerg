@@ -121,11 +121,15 @@ def predict():
                 })
                 breakdown_sum += contrib
                 
-        # Ensure mathematical invariant
+        # Ensure mathematical invariant holds against the raw prediction
         assert np.isclose(breakdown_sum, pred_price, rtol=1e-4), "Breakdown doesn't sum to total"
-                
-        # Ensure no negative prices
-        pred_price = max(0.0, float(pred_price))
+        
+        # Clamp negative prices but keep track for UX
+        raw_prediction = float(pred_price)
+        clamped = False
+        if pred_price < 0.0:
+            pred_price = 0.0
+            clamped = True
         
         theoretical_formulas = (
             "$\\textbf{1. Prediction Equation:} \\\\[1ex] y_{predicted} = wx + b$\n\n"
@@ -134,7 +138,9 @@ def predict():
         )
         
         return jsonify({
-            'price_lakhs': pred_price,
+            'price_lakhs': float(pred_price),
+            'raw_prediction': raw_prediction,
+            'clamped': clamped,
             'breakdown': breakdown,
             'formula': theoretical_formulas
         })

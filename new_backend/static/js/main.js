@@ -85,7 +85,11 @@ function renderPrediction(res) {
         if (calcContainer) calcContainer.style.display = 'none';
     } else {
         resultDiv.style.color = '#113023';
-        resultDiv.innerText = '₹ ' + res.price_lakhs.toFixed(2) + ' L';
+        resultDiv.innerHTML = '₹ ' + res.price_lakhs.toFixed(2) + ' L';
+        
+        if (res.clamped) {
+            resultDiv.innerHTML += `<div style="color: #eab308; font-size: 0.9rem; margin-top: 10px; padding: 10px; background-color: #fef9c3; border-radius: 8px; border: 1px solid #fde047;">Model predicted negative value (₹ ${res.raw_prediction.toFixed(2)} L). Price floored to ₹ 0.</div>`;
+        }
         
         // Show calculation breakdown if available
         if (res.breakdown && calcContainer && calcBody) {
@@ -104,7 +108,8 @@ function renderPrediction(res) {
             });
             
             if (calcTotalSum) {
-                calcTotalSum.innerText = res.price_lakhs.toFixed(4);
+                // Total sum in breakdown should equal the raw prediction to maintain transparency
+                calcTotalSum.innerText = res.raw_prediction ? res.raw_prediction.toFixed(4) : res.price_lakhs.toFixed(4);
             }
         } else {
             if (calcContainer) calcContainer.style.display = 'none';

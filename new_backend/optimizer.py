@@ -8,14 +8,14 @@ class NewtonRaphsonRegressor:
     def __init__(self, l2_penalty=0.1):
         self.l2_penalty = l2_penalty
         self.theta = None
-        self.history = []
 
     def fit(self, X, y):
         n_samples, n_features = X.shape
+        
         # Initialize theta
         self.theta = np.zeros(n_features)
-        
-        # Identity matrix for regularization (excluding bias term at index 0)
+            
+        # Identity matrix with 0 for intercept (no L2 regularization on bias term)
         I = np.eye(n_features)
         I[0, 0] = 0.0 
         
@@ -26,7 +26,6 @@ class NewtonRaphsonRegressor:
         mse = np.mean((y - y_pred)**2)
         l2_cost = self.l2_penalty * np.sum(self.theta[1:]**2)
         cost = mse + l2_cost
-        self.history.append({'epoch': 1, 'cost': float(cost)})
         
         # 3. First Derivative (Gradient)
         # G = -2/N * X^T (Y - Y_pred) + 2 * lambda * theta
@@ -41,8 +40,6 @@ class NewtonRaphsonRegressor:
         # Note: We use np.linalg.solve for better numerical stability instead of explicit inversion
         step = np.linalg.solve(hessian, gradient)
         self.theta = self.theta - step
-        
-        print(f"Optimization - Cost: {cost:.6f} - Gradient Norm: {np.linalg.norm(gradient):.6f}")
             
     def predict(self, X):
         return X @ self.theta

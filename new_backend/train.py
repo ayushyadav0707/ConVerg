@@ -46,7 +46,6 @@ def main():
     output = {
         'columns': columns,
         'theta_nr': model.theta.tolist(),
-        'history': model.history,
         'metrics': {
             'rmse': float(rmse),
             'mae': float(mae),

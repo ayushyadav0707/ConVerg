@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-
 def parse_sqft(x):
     try:
         x = str(x)
@@ -68,20 +66,30 @@ def load_and_preprocess(filepath):
     X_num = df[['total_sqft_num', 'bhk', 'bath', 'balcony', 'sqft_per_bhk', 'bath_per_bhk']]
     
     X_df = pd.concat([X_num, X_area, X_loc], axis=1).fillna(0)
+    X_df = X_df.loc[:, X_df.std() > 0]
     columns = X_df.columns.tolist()
     
+    num_count = sum(1 for c in X_num.columns if c in columns)
     X_raw = X_df.values.astype(np.float64)
     
     # Train test split
     X_train, X_test, y_train, y_test = train_test_split(X_raw, y, test_size=0.2, random_state=42)
     
     # 4. Standard Scaling (Only scale numeric columns to prevent sparse categorical explosion)
-    scaler = StandardScaler()
-    X_train_num = scaler.fit_transform(X_train[:, :6])
-    X_test_num = scaler.transform(X_test[:, :6])
+    num_means = np.mean(X_train[:, :num_count], axis=0)
+    num_stds = np.std(X_train[:, :num_count], axis=0)
     
-    X_train_scaled = np.c_[X_train_num, X_train[:, 6:]]
-    X_test_scaled = np.c_[X_test_num, X_test[:, 6:]]
+    X_train_num = (X_train[:, :num_count] - num_means) / num_stds
+    X_test_num = (X_test[:, :num_count] - num_means) / num_stds
+    
+    X_train_scaled = np.c_[X_train_num, X_train[:, num_count:]]
+    X_test_scaled = np.c_[X_test_num, X_test[:, num_count:]]
+    
+    class CustomScaler:
+        pass
+    scaler = CustomScaler()
+    scaler.mean_ = num_means
+    scaler.scale_ = num_stds
     
     # 5. Add Bias column (Intercept)
     X_train_final = np.c_[np.ones(X_train_scaled.shape[0]), X_train_scaled]

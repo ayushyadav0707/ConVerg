@@ -21,6 +21,12 @@ theta = np.array(model_data['theta_nr'])
 scaler_mean = np.array(model_data['scaler']['mean'])
 scaler_scale = np.array(model_data['scaler']['scale'])
 
+# Unscale weights once on startup
+num_count = len(scaler_mean)
+unscaled_weights = np.copy(theta)
+unscaled_weights[1:num_count+1] = theta[1:num_count+1] / scaler_scale
+unscaled_weights[0] = theta[0] - np.sum(theta[1:num_count+1] * scaler_mean / scaler_scale)
+
 # Extract locations for the frontend dropdown
 locations = [col.replace('loc_', '') for col in columns if col.startswith('loc_')]
 locations.sort()
@@ -57,6 +63,11 @@ def predict():
         sqft = float(data.get('sqft', 1000))
         bhk = float(data.get('bhk', 2))
         bath = float(data.get('bath', 2))
+        
+        if not (100 <= sqft <= 10000): return jsonify({'error': 'Square footage must be between 100 and 10000.'}), 400
+        if not (1 <= bhk <= 10): return jsonify({'error': 'BHK must be between 1 and 10.'}), 400
+        if not (1 <= bath <= 8): return jsonify({'error': 'Bathrooms must be between 1 and 8.'}), 400
+        
         balcony = float(data.get('balcony', 1))
         loc = data.get('location', 'Other')
         if not loc or str(loc).strip() == '' or f'loc_{loc}' not in columns:
@@ -78,34 +89,29 @@ def predict():
             elif col.startswith('area_'):
                 if col == f'area_{area}':
                     x[i] = 1.0
-                    
-        # Extract numeric features and scale them using training moments
-        num_features = x[:6]
-        scaled_num = (num_features - scaler_mean) / scaler_scale
-        
-        # Replace the unscaled numeric features with scaled ones
-        x_scaled = np.copy(x)
-        x_scaled[:6] = scaled_num
-        
         # Add bias
-        x_final = np.concatenate(([1.0], x_scaled))
+        x_final = np.concatenate(([1.0], x))
         
         # Dot product prediction
-        pred_price = np.dot(x_final, theta)
+        pred_price = np.dot(x_final, unscaled_weights)
         
         # Build calculation breakdown
         breakdown = []
+        breakdown_sum = 0.0
+        
+        bias_contrib = float(unscaled_weights[0])
         breakdown.append({
             "feature": "Bias (Intercept)",
             "value": 1.0,
-            "weight": float(theta[0]),
-            "contribution": float(theta[0] * 1.0)
+            "weight": bias_contrib,
+            "contribution": bias_contrib
         })
+        breakdown_sum += bias_contrib
         
-        for i, val in enumerate(x_scaled):
+        for i, val in enumerate(x):
             if abs(val) > 1e-4:
                 feat_name = columns[i]
-                weight = float(theta[i+1])
+                weight = float(unscaled_weights[i+1])
                 contrib = float(val * weight)
                 breakdown.append({
                     "feature": feat_name,
@@ -113,6 +119,10 @@ def predict():
                     "weight": weight,
                     "contribution": contrib
                 })
+                breakdown_sum += contrib
+                
+        # Ensure mathematical invariant
+        assert np.isclose(breakdown_sum, pred_price, rtol=1e-4), "Breakdown doesn't sum to total"
                 
         # Ensure no negative prices
         pred_price = max(0.0, float(pred_price))

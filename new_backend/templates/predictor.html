@@ -148,7 +148,11 @@
     <div class="predictor-page">
         <div class="predictor-container">
             <div class="predictor-card">
-                <h3 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; margin-bottom: 2rem; color: var(--text-primary); text-align: center;">Calculate Estimate</h3>
+                <h3 style="font-family: 'Inter', sans-serif; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--text-primary); text-align: center;">Calculate Estimate</h3>
+                
+                <div style="background-color: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-bottom: 1.5rem; border: 1px solid #f5c6cb;">
+                    <strong>Note:</strong> ConVerg House is trained on mid-market properties. Accuracy may degrade for ultra-luxury homes.
+                </div>
                 <div class="form-group" style="position: relative;">
                     <label>Location</label>
                     <input type="text" id="location" placeholder="Search Location..." value="" autocomplete="off">
@@ -186,7 +190,10 @@
                         <input type="number" id="balcony" placeholder="e.g. 1" min="0">
                     </div>
                 </div>
-                <button id="predict-btn" class="btn btn-primary" style="width: 100%; margin-top: 20px; font-size: 1.1rem; padding: 1rem;" onclick="predict()">Calculate Value</button>
+                <div style="display: flex; gap: 1rem; margin-top: 20px;">
+                    <button id="predict-btn" class="btn btn-primary" style="flex: 2; font-size: 1.1rem; padding: 1rem;" onclick="predict()">Calculate Value</button>
+                    <button id="clear-btn" class="btn btn-secondary" style="flex: 1; font-size: 1.1rem; padding: 1rem;" onclick="clearInputs()">Clear Input</button>
+                </div>
                 <div id="result" style="text-align: center; margin-top: 1.5rem; font-size: 1.5rem; font-weight: bold; font-family: 'Inter', sans-serif;"></div>
             </div>
             

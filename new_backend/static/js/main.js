@@ -54,6 +54,25 @@ async function predict() {
     }
 }
 
+function clearInputs() {
+    const fields = ['location', 'area_type', 'sqft', 'bhk', 'bath', 'balcony'];
+    fields.forEach(field => {
+        const el = document.getElementById(field);
+        if (el) {
+            el.value = '';
+        }
+        localStorage.removeItem('conVerg_' + field);
+    });
+    
+    const resultDiv = document.getElementById('result');
+    if (resultDiv) resultDiv.innerText = '';
+    const calcContainer = document.getElementById('calculation-container');
+    if (calcContainer) calcContainer.style.display = 'none';
+    
+    const areaSelect = document.getElementById('area_type');
+    if (areaSelect && areaSelect.options.length > 0) areaSelect.selectedIndex = 0;
+}
+
 function renderPrediction(res) {
     const resultDiv = document.getElementById('result');
     const calcContainer = document.getElementById('calculation-container');

@@ -1,0 +1,4 @@
+--- Final Test Metrics ---
+RMSE: 25.5018 Lakhs
+MAE:  16.2918 Lakhs
+R²:   0.8239

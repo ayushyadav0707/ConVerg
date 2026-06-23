@@ -1,5 +1,7 @@
 import os
 import json
+import time
+import shutil
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from data_processor import load_and_preprocess
@@ -26,7 +28,7 @@ def main():
     # Because OLS is a quadratic surface, Newton-Raphson converges to the global minimum in EXACTLY 1 step.
     # We run 3 epochs just to demonstrate the gradient vanishing to zero.
     print("\n--- Training Exact Newton-Raphson Optimizer ---")
-    model = NewtonRaphsonRegressor(l2_penalty=1e-4, epochs=3)
+    model = NewtonRaphsonRegressor(l2_penalty=1e-4)
     model.fit(X_train, y_train)
     
     # Predict and evaluate on unseen Test set
@@ -39,7 +41,8 @@ def main():
     print(f"R²:   {r2:.4f}")
     
     # Save weights and config
-    weights_path = os.path.join(base_dir, 'model_weights.json')
+    weights_path = os.path.join(base_dir, f'model_weights_{int(time.time())}.json')
+    main_weights_path = os.path.join(base_dir, 'model_weights.json')
     output = {
         'columns': columns,
         'theta_nr': model.theta.tolist(),
@@ -56,7 +59,9 @@ def main():
     }
     with open(weights_path, 'w') as f:
         json.dump(output, f)
-    print(f"\nModel strictly successfully built! Weights saved to {weights_path}")
+    
+    shutil.copy2(weights_path, main_weights_path)
+    print(f"\nModel strictly successfully built! Weights saved to {weights_path} and copied to {main_weights_path}")
 
 if __name__ == "__main__":
     main()

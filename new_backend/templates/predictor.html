@@ -18,6 +18,8 @@
             justify-content: center;
             min-height: 80vh;
             padding: 2rem;
+            box-sizing: border-box;
+            width: 100%;
         }
         .predictor-container {
             display: flex !important;
@@ -29,16 +31,18 @@
             width: 100% !important;
             max-width: 1200px !important;
             margin: 0 auto !important;
+            box-sizing: border-box !important;
         }
         .predictor-card {
             background: #fff !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
             border: none !important;
-            padding: 3rem !important;
+            padding: 2rem !important;
             border-radius: 16px !important;
             width: 100% !important;
             max-width: 450px !important;
+            box-sizing: border-box !important;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
             transform: none !important;
             flex: 1 1 auto !important;
@@ -126,6 +130,78 @@
         .dropdown-item:hover, .dropdown-item.active {
             background-color: #f1f5f9;
         }
+        @media (max-width: 768px) {
+            .predictor-page {
+                justify-content: flex-start;
+                padding: 1rem 1rem 2rem 1rem;
+                min-height: auto;
+            }
+            .predictor-container {
+                flex-direction: column !important;
+                min-width: 0 !important;
+                overflow-x: hidden !important;
+            }
+            .predictor-card {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.8rem !important;
+                padding: 1.5rem 1.2rem !important;
+                min-width: 0 !important;
+            }
+            .predictor-card > * {
+                grid-column: 1 / -1;
+            }
+            .predictor-card > h3 { order: 1; margin-bottom: 0 !important; }
+            .predictor-card > .form-group { order: 2; } /* Location */
+            
+            #area-row, #rooms-row {
+                display: contents;
+            }
+            
+            #area-row .form-group:nth-child(2) {
+                grid-column: 1 / -1;
+                order: 3; /* Build Up Area Type */
+            }
+            
+            #area-row .form-group:nth-child(1) {
+                grid-column: 1 / 2;
+                order: 4; /* Total Square Feet */
+            }
+            
+            #rooms-row .form-group:nth-child(1) {
+                grid-column: 2 / 3;
+                order: 4; /* BHK */
+            }
+            
+            #rooms-row .form-group:nth-child(2) {
+                grid-column: 1 / 2;
+                order: 5; /* Bathrooms */
+            }
+            
+            #rooms-row .form-group:nth-child(3) {
+                grid-column: 2 / 3;
+                order: 5; /* Balconies */
+            }
+            
+            .predictor-card > div[style*="display: flex"] {
+                flex-direction: column;
+                order: 6;
+                margin-top: 0 !important;
+                gap: 0.5rem !important;
+            }
+            .predictor-card > #result {
+                order: 7;
+                margin-top: 0 !important;
+            }
+            #calculation-container {
+                padding: 1.5rem 1rem !important;
+                min-width: 0 !important;
+            }
+            .calc-table {
+                white-space: nowrap;
+                min-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -160,7 +236,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" id="area-row">
                     <div class="form-group">
                         <label>Total Square Feet</label>
                         <input type="number" id="sqft" placeholder="e.g. 1200" min="300">
@@ -174,7 +250,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="form-row">
+                <div class="form-row" id="rooms-row">
                     <div class="form-group">
                         <label>BHK</label>
                         <input type="number" id="bhk" placeholder="e.g. 2" min="1">
@@ -197,7 +273,8 @@
             
             <div id="calculation-container" style="display: none;">
                 <h4 style="font-size: 1.2rem; margin-bottom: 1.5rem; text-align: center;">Newton-Raphson Prediction Breakdown</h4>
-                <table class="calc-table">
+                <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table class="calc-table">
                     <thead>
                         <tr>
                             <th>Feature</th>
@@ -215,6 +292,7 @@
                         </tr>
                     </tfoot>
                 </table>
+                </div>
             </div>
         </div>
     </div>

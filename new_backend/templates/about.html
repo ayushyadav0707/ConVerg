@@ -60,6 +60,10 @@
 
         .about-content p {
             margin-bottom: 1.5rem;
+            text-align: justify;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+            hyphens: auto;
         }
         
         .team-section {
@@ -67,6 +71,13 @@
             padding-top: 2rem;
             border-top: 1px solid #e2e8f0;
             text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .about-container {
+                margin: 0 1rem 3rem 1rem;
+                padding: 2rem 1.5rem;
+            }
         }
     </style>
 </head>
